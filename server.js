@@ -4,6 +4,7 @@ const cors = require("cors");
 require("dotenv").config();
 
 const userRoutes = require("./routers/UserRoutes");
+const dataRoutes = require("./routers/DataRoutes");
 
 const app = express();
 
@@ -25,6 +26,7 @@ mongoose.connect(process.env.MONGO_URI)
 });
 
 app.use("/api", userRoutes);
+app.use("/api", dataRoutes);
 
 app.get("/", (req, res) => {
     res.send("Kenko Backend Server is Running");
