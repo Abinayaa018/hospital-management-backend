@@ -10,8 +10,7 @@ const app = express();
 app.use(express.json());
 app.use(cors({
   origin: [
-    "https://kenko-hospital-system.vercel.app",
-    /\.vercel\.app$/,
+    "https://hospital-management-system-drab-beta.vercel.app",
     "http://localhost:3000"
   ],
   credentials: true
