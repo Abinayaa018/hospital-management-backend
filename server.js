@@ -7,10 +7,15 @@ const userRoutes = require("./routers/UserRoutes");
 
 const app = express();
 
-
 app.use(express.json());
-app.use(cors());
-
+app.use(cors({
+  origin: [
+    "https://kenko-hospital-system.vercel.app",
+    /\.vercel\.app$/,
+    "http://localhost:3000"
+  ],
+  credentials: true
+}));
 
 mongoose.connect(process.env.MONGO_URI)
 .then(() => {
@@ -20,14 +25,11 @@ mongoose.connect(process.env.MONGO_URI)
     console.error("❌ Error connecting to MongoDB:", error.message);
 });
 
-
 app.use("/api", userRoutes);
-
 
 app.get("/", (req, res) => {
     res.send("Kenko Backend Server is Running");
 });
-
 
 const PORT = process.env.PORT || 5000;
 
