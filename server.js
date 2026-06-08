@@ -16,10 +16,17 @@ const allowedOrigins = [
   "http://localhost:3000"
 ].filter(Boolean);
 
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true
-}));
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true)
+    if (allowedOrigins.includes(origin)) return callback(null, true)
+    if (/\.vercel\.app$/.test(origin)) return callback(null, true)
+    callback(new Error(`CORS policy does not allow access from origin ${origin}`))
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 
 const mongoUri = process.env.MONGO_URI?.trim();
 if (!mongoUri) {
