@@ -1,4 +1,5 @@
 const User = require('./UserModel');
+const { signToken } = require('./auth');
 
 // REGISTER
 const SignUpUser = async (req, res) => {
@@ -8,7 +9,7 @@ const SignUpUser = async (req, res) => {
         const existing = await User.findOne({ email });
         if (existing) return res.status(409).json({ message: 'Email already registered' });
 
-        const newUser = new User({ firstname, lastname, email, password, role });
+        const newUser = new User({ firstname, lastname, email, password, role: role || 'Patient' });
         const savedUser = await newUser.save();
 
         res.status(201).json({ message: 'User created successfully', data: savedUser });
@@ -26,10 +27,13 @@ const LoginUser = async (req, res) => {
         if (!user) return res.status(404).json({ message: 'User not found' });
         if (user.password !== password) return res.status(401).json({ message: 'Invalid password' });
 
+        const token = signToken({ id: user._id, email: user.email, role: user.role });
+
         res.status(200).json({
             name: `${user.firstname} ${user.lastname}`.trim(),
             email: user.email,
-            role: user.role || 'User'
+            role: user.role || 'Patient',
+            token,
         });
     } catch (error) {
         res.status(500).json({ message: 'Error logging in', error: error.message });
