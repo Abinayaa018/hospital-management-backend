@@ -21,7 +21,13 @@ app.use(cors({
   credentials: true
 }));
 
-mongoose.connect(process.env.MONGO_URI)
+const mongoUri = process.env.MONGO_URI?.trim();
+if (!mongoUri) {
+  console.error("❌ MONGO_URI is not defined. Set it in backend/.env or Render environment variables.");
+  process.exit(1);
+}
+
+mongoose.connect(mongoUri)
 .then(() => {
     console.log("✅ Connected to MongoDB successfully");
 })
