@@ -9,11 +9,15 @@ const dataRoutes = require("./routers/DataRoutes");
 const app = express();
 
 app.use(express.json());
+
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "https://hospital-management-system-drab-beta.vercel.app",
+  "http://localhost:3000"
+].filter(Boolean);
+
 app.use(cors({
-  origin: [
-    "https://hospital-management-system-drab-beta.vercel.app",
-    "http://localhost:3000"
-  ],
+  origin: allowedOrigins,
   credentials: true
 }));
 
