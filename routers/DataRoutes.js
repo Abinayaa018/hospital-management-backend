@@ -47,7 +47,20 @@ function crudRouter(Model, resource) {
   const r = express.Router();
   r.use(authenticate);
 
-  r.get('/', async (req, res) => {
+  const roleAccessMap = {
+    'patients': { GET: ['Admin', 'Doctor', 'Patient'], POST: ['Admin'], PUT: ['Admin'], DELETE: ['Admin'] },
+    'doctors': { GET: ['Admin', 'Doctor', 'Patient'], POST: ['Admin'], PUT: ['Admin'], DELETE: ['Admin'] },
+    'appointments': { GET: ['Admin', 'Doctor', 'Patient'], POST: ['Admin', 'Doctor'], PUT: ['Admin', 'Doctor'], DELETE: ['Admin'] },
+    'invoices': { GET: ['Admin', 'Doctor'], POST: ['Admin'], PUT: ['Admin'], DELETE: ['Admin'] },
+    'medicines': { GET: ['Admin', 'Doctor'], POST: ['Admin'], PUT: ['Admin'], DELETE: ['Admin'] },
+  };
+
+  const allowedRolesForGET = roleAccessMap[resource]?.GET || ['Admin'];
+  const allowedRolesForPOST = roleAccessMap[resource]?.POST || ['Admin'];
+  const allowedRolesForPUT = roleAccessMap[resource]?.PUT || ['Admin'];
+  const allowedRolesForDELETE = roleAccessMap[resource]?.DELETE || ['Admin'];
+
+  r.get('/', requireRole(allowedRolesForGET), async (req, res) => {
     try {
       const docs = await Model.find().sort({ createdAt: -1 });
       res.json(formatResponse(docs));
@@ -56,7 +69,7 @@ function crudRouter(Model, resource) {
     }
   });
 
-  r.post('/', requireRole(resource === 'appointments' ? ['Admin', 'Doctor'] : ['Admin']), async (req, res) => {
+  r.post('/', requireRole(allowedRolesForPOST), async (req, res) => {
     try {
       const payload = { ...req.body };
       if (req.user.role === 'Doctor' && resource === 'appointments') {
@@ -69,7 +82,7 @@ function crudRouter(Model, resource) {
     }
   });
 
-  r.put('/:id', requireRole(resource === 'appointments' ? ['Admin', 'Doctor'] : ['Admin']), async (req, res) => {
+  r.put('/:id', requireRole(allowedRolesForPUT), async (req, res) => {
     try {
       if (req.user.role === 'Doctor' && resource === 'appointments') {
         const allowedStatuses = ['Approved', 'Declined', 'Scheduled', 'Confirmed', 'Pending', 'In Progress', 'Completed'];
@@ -90,7 +103,7 @@ function crudRouter(Model, resource) {
     }
   });
 
-  r.delete('/:id', requireRole(['Admin']), async (req, res) => {
+  r.delete('/:id', requireRole(allowedRolesForDELETE), async (req, res) => {
     try {
       const doc = await Model.findByIdAndDelete(req.params.id);
       if (!doc) return res.status(404).json({ message: 'Not found' });

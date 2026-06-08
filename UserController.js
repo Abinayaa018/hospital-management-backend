@@ -21,11 +21,16 @@ const SignUpUser = async (req, res) => {
 // LOGIN
 const LoginUser = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, role } = req.body;
 
         const user = await User.findOne({ email });
         if (!user) return res.status(404).json({ message: 'User not found' });
         if (user.password !== password) return res.status(401).json({ message: 'Invalid password' });
+
+        // If a role is specified in the request, validate it matches the user's role
+        if (role && user.role !== role) {
+            return res.status(403).json({ message: `This account is not registered as a ${role}` });
+        }
 
         const token = signToken({ id: user._id, email: user.email, role: user.role });
 
